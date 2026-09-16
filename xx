@@ -1,0 +1,476 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+st.set_page_config(
+    page_title="Quantum Analytics",
+    page_icon="⚛️",
+    layout="wide"
+)
+
+
+st.title("⚛️ Future of Data - Quantum Analytics")
+
+st.write(
+    "This project shows how data can be analyzed using "
+    "traditional analytics and a simple quantum-inspired approach."
+)
+
+st.write(
+    "You can upload your own CSV or Excel file, "
+    "or use the sample dataset provided by the project."
+)
+
+def create_sample_data():
+
+    np.random.seed(10)
+
+    data = {
+        "Customer_ID": range(1, 101),
+        "Age": np.random.randint(18, 65, 100),
+        "Income": np.random.randint(20000, 150000, 100),
+        "Transaction_Amount": np.random.randint(500, 50000, 100),
+        "Transactions": np.random.randint(1, 20, 100)
+    }
+
+    return pd.DataFrame(data)
+
+
+st.header("📂 Upload Your Dataset")
+
+file = st.file_uploader(
+    "Choose a CSV or Excel file",
+    type=["csv", "xlsx"]
+)
+
+
+if file is not None:
+
+    try:
+
+        if file.name.endswith(".csv"):
+            df = pd.read_csv(file)
+
+        else:
+            df = pd.read_excel(file)
+
+        st.success("Dataset uploaded successfully!")
+
+    except Exception as e:
+
+        st.error("Unable to read the file.")
+        st.write(e)
+        st.stop()
+
+else:
+
+    df = create_sample_data()
+
+    st.info(
+        "No file uploaded. Sample data is being used."
+    )
+
+
+# -------------------------------
+# Dataset Overview
+# -------------------------------
+
+st.header("📊 Dataset Overview")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric("Rows", len(df))
+
+with col2:
+    st.metric("Columns", len(df.columns))
+
+with col3:
+    st.metric(
+        "Missing Values",
+        int(df.isnull().sum().sum())
+    )
+
+with col4:
+    st.metric(
+        "Duplicate Rows",
+        int(df.duplicated().sum())
+    )
+
+
+# -------------------------------
+# Show Dataset
+# -------------------------------
+
+st.subheader("🔍 First 10 Records")
+
+st.dataframe(
+    df.head(10),
+    use_container_width=True
+)
+
+
+# -------------------------------
+# Data Information
+# -------------------------------
+
+st.header("📋 Data Information")
+
+info = pd.DataFrame({
+    "Column": df.columns,
+    "Data Type": df.dtypes.astype(str),
+    "Missing Values": df.isnull().sum(),
+    "Unique Values": df.nunique()
+})
+
+st.dataframe(
+    info,
+    use_container_width=True
+)
+
+st.header("🧹 Data Quality Check")
+
+missing = df.isnull().sum()
+
+if missing.sum() == 0:
+
+    st.success("✅ No missing values found.")
+
+else:
+
+    st.warning("⚠️ Missing values were found.")
+
+    missing_table = pd.DataFrame({
+        "Column": missing.index,
+        "Missing Values": missing.values
+    })
+
+    missing_table = missing_table[
+        missing_table["Missing Values"] > 0
+    ]
+
+    st.dataframe(
+        missing_table,
+        use_container_width=True
+    )
+
+
+duplicates = df.duplicated().sum()
+
+if duplicates == 0:
+
+    st.success("✅ No duplicate rows found.")
+
+else:
+
+    st.warning(
+        f"⚠️ There are {duplicates} duplicate rows."
+    )
+
+
+numeric_columns = df.select_dtypes(
+    include=np.number
+).columns.tolist()
+
+
+st.header("📈 Basic Data Analysis")
+
+
+if len(numeric_columns) > 0:
+
+    selected_column = st.selectbox(
+        "Select a numerical column",
+        numeric_columns
+    )
+
+    values = pd.to_numeric(
+        df[selected_column],
+        errors="coerce"
+    ).dropna()
+
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric(
+            "Average",
+            f"{values.mean():.2f}"
+        )
+
+    with col2:
+        st.metric(
+            "Median",
+            f"{values.median():.2f}"
+        )
+
+    with col3:
+        st.metric(
+            "Minimum",
+            f"{values.min():.2f}"
+        )
+
+    with col4:
+        st.metric(
+            "Maximum",
+            f"{values.max():.2f}"
+        )
+
+st.subheader("📊 Data Distribution")
+
+
+if len(numeric_columns) > 0:
+
+    histogram_column = st.selectbox(
+        "Choose a column",
+        numeric_columns,
+        key="histogram"
+    )
+
+    values = pd.to_numeric(
+        df[histogram_column],
+        errors="coerce"
+    ).dropna()
+
+
+    fig, ax = plt.subplots()
+
+    ax.hist(
+        values,
+        bins=15,
+        edgecolor="black"
+    )
+
+    ax.set_title(
+        "Distribution of " + histogram_column
+    )
+
+    ax.set_xlabel(histogram_column)
+    ax.set_ylabel("Number of Records")
+
+    st.pyplot(fig)
+
+    plt.close(fig)
+
+st.header("🔗 Correlation Analysis")
+
+
+if len(numeric_columns) >= 2:
+
+    correlation = df[numeric_columns].corr()
+
+    st.write(
+        "Correlation shows how strongly two numerical "
+        "variables are related."
+    )
+
+    st.dataframe(
+        correlation,
+        use_container_width=True
+    )
+
+else:
+
+    st.info(
+        "At least two numerical columns are required."
+    )
+
+st.header("⚛️ Quantum-Inspired Analytics")
+
+st.write(
+    "This section uses a simple mathematical simulation "
+    "inspired by quantum probability."
+)
+
+st.write(
+    "It is not running on a real quantum computer. "
+    "It is a classical Python simulation of a quantum-inspired idea."
+)
+
+
+if len(numeric_columns) > 0:
+
+    quantum_column = st.selectbox(
+        "Select a column for Quantum Analysis",
+        numeric_columns,
+        key="quantum"
+    )
+
+
+    values = pd.to_numeric(
+        df[quantum_column],
+        errors="coerce"
+    )
+
+
+    # Fill missing values
+    values = values.fillna(values.median())
+
+
+    # Normalize the data between 0 and 1
+    minimum = values.min()
+    maximum = values.max()
+
+
+    if maximum != minimum:
+
+        normalized = (
+            values - minimum
+        ) / (
+            maximum - minimum
+        )
+
+    else:
+
+        normalized = pd.Series(
+            0.5,
+            index=values.index
+        )
+
+
+    # Quantum-inspired amplitude
+    amplitude = np.sqrt(normalized)
+
+
+    # Probability
+    probability = amplitude ** 2
+
+
+    # Final score
+    quantum_score = (
+        normalized + probability
+    ) / 2
+
+
+    # Create result table
+    result = df.copy()
+
+    result["Normalized Value"] = normalized
+    result["Quantum Amplitude"] = amplitude
+    result["Quantum Probability"] = probability
+    result["Quantum Score"] = quantum_score
+
+
+
+    def get_category(score):
+
+        if score >= 0.75:
+            return "High"
+
+        elif score >= 0.50:
+            return "Medium"
+
+        else:
+            return "Low"
+
+
+    result["Category"] = result[
+        "Quantum Score"
+    ].apply(get_category)
+
+    st.subheader("⚛️ Quantum Analysis Results")
+
+    st.dataframe(
+        result.head(20),
+        use_container_width=True
+    )
+
+
+
+    average_score = result[
+        "Quantum Score"
+    ].mean()
+
+    high_records = (
+        result["Category"] == "High"
+    ).sum()
+
+    maximum_score = result[
+        "Quantum Score"
+    ].max()
+
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+
+        st.metric(
+            "Average Quantum Score",
+            f"{average_score:.3f}"
+        )
+
+    with col2:
+
+        st.metric(
+            "High Score Records",
+            int(high_records)
+        )
+
+    with col3:
+
+        st.metric(
+            "Highest Score",
+            f"{maximum_score:.3f}"
+        )
+
+
+
+    st.subheader("📊 Quantum Score Distribution")
+
+
+    fig, ax = plt.subplots()
+
+    ax.hist(
+        result["Quantum Score"],
+        bins=15,
+        edgecolor="black"
+    )
+
+    ax.set_title(
+        "Quantum-Inspired Score Distribution"
+    )
+
+    ax.set_xlabel("Quantum Score")
+    ax.set_ylabel("Number of Records")
+
+    st.pyplot(fig)
+
+    plt.close(fig)
+
+
+    st.subheader("🚨 Top Quantum Score Records")
+
+    top_records = result.sort_values(
+        "Quantum Score",
+        ascending=False
+    ).head(10)
+
+
+    st.dataframe(
+        top_records,
+        use_container_width=True
+    )
+
+
+
+    st.subheader("⬇️ Download Results")
+
+    csv_file = result.to_csv(
+        index=False
+    ).encode("utf-8")
+
+
+    st.download_button(
+        "📥 Download Results as CSV",
+        csv_file,
+        "quantum_analytics_results.csv",
+        "text/csv"
+    )
+
+
+else:
+
+    st.warning(
+        "No numerical columns found in the dataset."
+    )
+
